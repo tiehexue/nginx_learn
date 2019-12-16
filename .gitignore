@@ -1,0 +1,5 @@
+**.o
+**.log
+**.pid
+**/nginx
+**/nginx.8
