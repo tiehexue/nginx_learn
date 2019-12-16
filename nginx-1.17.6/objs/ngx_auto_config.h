@@ -169,7 +169,7 @@
 
 
 #ifndef NGX_HAVE_INET6
-#define NGX_HAVE_INET6  0
+#define NGX_HAVE_INET6  1
 #endif
 
 
