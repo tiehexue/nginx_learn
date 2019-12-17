@@ -1,5 +1,5 @@
 **.o
 **.log
 **.pid
-**/nginx
+**/objs/nginx
 **/nginx.8

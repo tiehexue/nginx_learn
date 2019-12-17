@@ -1600,6 +1600,7 @@
 					NGX_THREADS,
 					NGX_HTTP_V2,
 					NGX_STAT_STUB,
+					__APPLE_USE_RFC_3542,
 				);
 				"HEADER_SEARCH_PATHS[arch=*]" = "";
 				LIBRARY_SEARCH_PATHS = (
@@ -1646,6 +1647,7 @@
 					NGX_THREADS,
 					NGX_HTTP_V2,
 					NGX_STAT_STUB,
+					__APPLE_USE_RFC_3542,
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",

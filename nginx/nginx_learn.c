@@ -1,0 +1,107 @@
+//
+//  nginx_learn.c
+//  nginx
+//
+//  Created by Yuan Wang on 2019/12/16.
+//  Copyright © 2019 Yuan Wang. All rights reserved.
+//
+
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/fcntl.h>
+
+#define PORT 80
+#define MAX_URL_LENGTH 150
+
+#define PANIC(func, ...) {                                 \
+    int ret = func(__VA_ARGS__);                           \
+    if (ret < 0) {                                         \
+        printf("system call %s error: %d.\n", #func, ret); \
+        exit(-1);                                          \
+    }                                                      \
+}
+
+const char *html_root = 0;
+const char *status_header = "HTTP/1.0 200 OK\nServer: nginx_learn\nContent-Type: text/html;charset=utf-8\n\n";
+
+struct stat filesize(int fd) {
+    struct stat st;
+    assert(fstat(fd, &st) != -1);
+    return st;
+}
+
+void map_uri_to_path(char *uri, char *path) {
+    size_t len = strlen(html_root);
+    if (html_root[len - 1] == '/') {
+        len--;
+    }
+    
+    strncpy(path, html_root, len);
+    
+    if (uri[5] == ' ') {
+        strncpy(path + len, "/index.html", 11);
+    } else {
+        char *http = strstr(uri, "HTTP");
+        strncpy(path + len, uri + 4, (int)(http - uri - 5));
+    }
+}
+
+int main(int argc, const char * argv[]) {
+    
+    if (argc < 2) {
+        printf("need to specify index file.\n");
+        exit(-1);
+    } else {
+        html_root = argv[1];
+    }
+    
+    int server_socket = socket(AF_INET, SOCK_STREAM, 0);
+    
+    struct sockaddr_in server_addr;
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    server_addr.sin_port = htons(PORT);
+    
+    PANIC(bind, server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr));
+    
+    PANIC(listen, server_socket, 5);
+    
+    printf("ready to serve.\n");
+    
+    int client_socket = 0;
+    
+    while ((client_socket = accept(server_socket, NULL, NULL))) {
+        
+        char buf[1024] = {0};
+        read(client_socket, buf, 1024);
+        buf[1023] = 0;
+        printf("%s", buf);
+        
+        char path[MAX_URL_LENGTH] = {0};
+        map_uri_to_path(buf, path);
+        int fd = open(path, O_RDONLY);
+        if (fd > 0) {
+            struct stat st = filesize(fd);
+            
+            write(client_socket, status_header, strlen(status_header));
+            
+            sendfile(fd, client_socket, 0, (off_t *)&st.st_size, NULL, 0);
+        } else {
+            char *status = "HTTP/1.0 404 OK\n";
+            write(client_socket, status, strlen(status));
+        }
+        
+        close(client_socket);
+    }
+    
+    close(server_socket);
+    
+    return 0;
+}
