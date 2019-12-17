@@ -1,4 +1,8 @@
-#define NGX_CONFIGURE " --with-http_v2_module --with-http_realip_module --add-module=../third_party/ngx_http_mysql_module --without-http_geo_module --with-http_ssl_module --with-openssl=~/Downloads/openssl-1.0.2t"
+#define NGX_CONFIGURE " --with-debug --with-http_v2_module --with-http_realip_module --add-module=../third_party/ngx_http_mysql_module --without-http_geo_module --with-http_ssl_module"
+
+#ifndef NGX_DEBUG
+#define NGX_DEBUG  1
+#endif
 
 #ifndef NGX_COMPILER
 #define NGX_COMPILER  "clang 11.0.0 (clang-1100.0.33.16)"
