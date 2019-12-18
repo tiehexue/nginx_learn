@@ -27,7 +27,7 @@
     }                                                      \
 }
 
-extern int get_value(const char *path, u_long length);
+extern int hash_get_value(const char *path, u_long length);
 
 const char *html_root = 0;
 const char *status_header = "HTTP/1.0 200 OK\nServer: nginx_learn\n";
@@ -108,7 +108,7 @@ int main(int argc, const char * argv[]) {
             char path[MAX_URL_LENGTH] = {0};
             const char *content_type = map_uri_to_path(buf, path);
             
-            int fd = get_value(path, strlen(path));
+            int fd = hash_get_value(path, strlen(path));
             if (fd > 0) {
                 struct stat st = filesize(fd);
                 

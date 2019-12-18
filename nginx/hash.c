@@ -10,13 +10,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <unistd.h>
 
-#define INITIAL_SIZE 200
+#define INITIAL_SIZE 100
 
 typedef struct _hash_node {
     const char *key;
     int fd;
-    struct _has_node *next;
+    struct _hash_node *next;
 } hash_node;
 
 typedef struct _hash_map {
@@ -148,38 +149,70 @@ u_long hash(const char *s, u_long len) {
     return key % INITIAL_SIZE;
 }
 
-void add_to_hash(const char *key, u_long length, int value, u_long index) {
+int add_to_hash(const char *key, u_long length, u_long index, hash_node *head) {
+    
+    char path[200] = {0};
+    size_t len = strlen(html_root);
+    if (html_root[len - 1] == '/') {
+        len--;
+    }
+    strncpy(path, html_root, len);
+    strncpy(path + len, key, length);
+    
+    int fd = open(path, O_RDONLY);
+    
     char *key_duplicate = (char *)malloc(sizeof(char) * length + 1);
     strncpy(key_duplicate, key, length);
     key_duplicate[length] = '\0';
     
-    cache.nodes[index].key = key_duplicate;
-    cache.nodes[index].fd = value;
-    cache.nodes[index].next = NULL;
+    if (!head) {
+        cache.nodes[index].key = key_duplicate;
+        cache.nodes[index].fd = fd;
+        cache.nodes[index].next = NULL;
     
-    printf("Added to hash %s -> %d\n", key, value);
+        printf("Added to hash %s : %ld -> %d\n", key, index, fd);
+    } else {
+        hash_node *new = (hash_node *)malloc(sizeof(hash_node));
+        new->key = key_duplicate;
+        new->fd = fd;
+        new->next = NULL;
+        
+        head->next = new;
+        
+        printf("Added to hash %s : %ld -> %d (%#.8X) \n", key, index, fd, (int)head);
+    }
+    
+    return fd;
 }
 
-int get_value(const char *key, u_long length) {
+int hash_get_value(const char *key, u_long length) {
     u_long index = hash(key, length);
     
     if (cache.nodes[index].fd == 0) {
-        
-        char path[200];
-        size_t len = strlen(html_root);
-        if (html_root[len - 1] == '/') {
-            len--;
-        }
-        strncpy(path, html_root, len);
-        strncpy(path + len, key, length);
-        
-        int fd = open(path, O_RDONLY);
-        add_to_hash(key, length, fd, index);
-        
-        return fd;
+        return add_to_hash(key, length, index, NULL);
     } else if (cache.nodes[index].fd == -1) {
+        // conflicts
+        hash_node *head = cache.nodes[index].next;
+        while (head && head->next && strcmp(head->key, key) != 0) {
+            head = head->next;
+        }
+        
+        if (!head) {
+            return add_to_hash(key, length, index, NULL);
+        } else if (strcmp(head->key, key) == 0) {
+            return head->fd;
+        } else {
+            return add_to_hash(key, length, index, head);
+        }
+    } else if (strcmp(key, cache.nodes[index].key) == 0) {
         return cache.nodes[index].fd;
     } else {
-        return cache.nodes[index].fd;
+        // conflicts
+        char *first = (char *)cache.nodes[index].key;
+        add_to_hash(first, strlen(first), index, &cache.nodes[index]);
+        free(first);
+        close(cache.nodes[index].fd);
+        cache.nodes[index].fd = -1;
+        return add_to_hash(key, length, index, cache.nodes[index].next);
     }
 }
