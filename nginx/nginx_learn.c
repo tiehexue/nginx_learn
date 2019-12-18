@@ -28,7 +28,14 @@
 }
 
 const char *html_root = 0;
-const char *status_header = "HTTP/1.0 200 OK\nServer: nginx_learn\nContent-Type: text/html;charset=utf-8\n\n";
+const char *status_header = "HTTP/1.0 200 OK\nServer: nginx_learn\n";
+const char *html_content_type[] = {
+    "Content-Type: text/html;charset=utf-8\n\n",
+    "Content-Type: application/javascript;charset=utf-8\n\n",
+    "Content-Type: text/css;charset=utf-8\n\n",
+    "Content-Type: image/png;charset=utf-8\n\n",
+    "Content-Type: image/jpg;charset=utf-8\n\n"
+};
 
 struct stat filesize(int fd) {
     struct stat st;
@@ -36,7 +43,8 @@ struct stat filesize(int fd) {
     return st;
 }
 
-void map_uri_to_path(char *uri, char *path) {
+const char * map_uri_to_path(char *uri, char *path) {
+    
     size_t len = strlen(html_root);
     if (html_root[len - 1] == '/') {
         len--;
@@ -49,6 +57,20 @@ void map_uri_to_path(char *uri, char *path) {
     } else {
         char *http = strstr(uri, "HTTP");
         strncpy(path + len, uri + 4, (int)(http - uri - 5));
+    }
+    
+    const char *postfix = strrchr(path, '.');
+    
+    if (!strcmp(postfix, ".js")) {
+        return html_content_type[1];
+    } else if (!strcmp(postfix, ".css")) {
+        return html_content_type[2];
+    } else if (!strcmp(postfix, ".png")){
+        return html_content_type[3];
+    } else if (!strcmp(postfix, ".jpg")){
+        return html_content_type[4];
+    } else {
+        return html_content_type[0];
     }
 }
 
@@ -85,12 +107,14 @@ int main(int argc, const char * argv[]) {
         printf("%s", buf);
         
         char path[MAX_URL_LENGTH] = {0};
-        map_uri_to_path(buf, path);
+        const char *content_type = map_uri_to_path(buf, path);
+        
         int fd = open(path, O_RDONLY);
         if (fd > 0) {
             struct stat st = filesize(fd);
             
             write(client_socket, status_header, strlen(status_header));
+            write(client_socket, content_type, strlen(content_type));
             
             sendfile(fd, client_socket, 0, (off_t *)&st.st_size, NULL, 0);
         } else {
