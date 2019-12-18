@@ -318,6 +318,7 @@
 		15A1FFFD23A75FD0007549C2 /* ngx_daemon.c in Sources */ = {isa = PBXBuildFile; fileRef = 1506D79223A331E200B4F90F /* ngx_daemon.c */; };
 		15A1FFFE23A75FD0007549C2 /* ngx_http_mysql_module.c in Sources */ = {isa = PBXBuildFile; fileRef = 1523589023A391F300C82F9B /* ngx_http_mysql_module.c */; };
 		15A1FFFF23A75FD0007549C2 /* ngx_http_upstream_hash_module.c in Sources */ = {isa = PBXBuildFile; fileRef = 15305FB323A3267400CC1624 /* ngx_http_upstream_hash_module.c */; };
+		15DDF96023AA04180019BC44 /* hash.c in Sources */ = {isa = PBXBuildFile; fileRef = 15DDF95F23AA04180019BC44 /* hash.c */; };
 		15E0172523A73A5700953F23 /* libssl.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 15E0172423A73A5700953F23 /* libssl.1.0.0.dylib */; };
 		15E0172723A73A7F00953F23 /* ngx_http_ssl_module.c in Sources */ = {isa = PBXBuildFile; fileRef = 15E0172623A73A7F00953F23 /* ngx_http_ssl_module.c */; };
 		15E0172923A73AD400953F23 /* libcrypto.1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 15E0172823A73AD400953F23 /* libcrypto.1.0.0.dylib */; };
@@ -593,6 +594,7 @@
 		15A1007023A75FD0007549C2 /* nginx_learn */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = nginx_learn; sourceTree = BUILT_PRODUCTS_DIR; };
 		15A1FFC623A75EB4007549C2 /* nginx_main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = nginx_main.c; sourceTree = "<group>"; };
 		15A1FFC823A75F96007549C2 /* nginx_learn.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = nginx_learn.c; sourceTree = "<group>"; };
+		15DDF95F23AA04180019BC44 /* hash.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = hash.c; sourceTree = "<group>"; };
 		15E0172423A73A5700953F23 /* libssl.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libssl.1.0.0.dylib; path = ../../../../../usr/local/Cellar/openssl/1.0.2t/lib/libssl.1.0.0.dylib; sourceTree = "<group>"; };
 		15E0172623A73A7F00953F23 /* ngx_http_ssl_module.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ngx_http_ssl_module.c; sourceTree = "<group>"; };
 		15E0172823A73AD400953F23 /* libcrypto.1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.1.0.0.dylib; path = ../../../../../usr/local/Cellar/openssl/1.0.2t/lib/libcrypto.1.0.0.dylib; sourceTree = "<group>"; };
@@ -748,6 +750,7 @@
 			children = (
 				15A1FFC623A75EB4007549C2 /* nginx_main.c */,
 				15A1FFC823A75F96007549C2 /* nginx_learn.c */,
+				15DDF95F23AA04180019BC44 /* hash.c */,
 			);
 			path = nginx;
 			sourceTree = "<group>";
@@ -1365,6 +1368,7 @@
 				15A1004F23A75FD0007549C2 /* ngx_md5.c in Sources */,
 				15A1005023A75FD0007549C2 /* ngx_http_sub_filter_module.c in Sources */,
 				15A1005123A75FD0007549C2 /* ngx_time.c in Sources */,
+				15DDF96023AA04180019BC44 /* hash.c in Sources */,
 				15A1005223A75FD0007549C2 /* ngx_event_openssl.c in Sources */,
 				15A1005323A75FD0007549C2 /* ngx_http_map_module.c in Sources */,
 				15A1005423A75FD0007549C2 /* ngx_files.c in Sources */,

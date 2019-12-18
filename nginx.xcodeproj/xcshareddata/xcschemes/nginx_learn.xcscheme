@@ -52,7 +52,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../ml-web-pc/dist"
+            argument = "$(PROJECT_DIR)/../../../Downloads/share/flower_photos/train"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

@@ -27,6 +27,8 @@
     }                                                      \
 }
 
+extern int get_value(const char *path, u_long length);
+
 const char *html_root = 0;
 const char *status_header = "HTTP/1.0 200 OK\nServer: nginx_learn\n";
 const char *html_content_type[] = {
@@ -45,18 +47,13 @@ struct stat filesize(int fd) {
 
 const char * map_uri_to_path(char *uri, char *path) {
     
-    size_t len = strlen(html_root);
-    if (html_root[len - 1] == '/') {
-        len--;
-    }
     
-    strncpy(path, html_root, len);
     
     if (uri[5] == ' ') {
-        strncpy(path + len, "/index.html", 11);
+        strncpy(path, "/index.html", 11);
     } else {
         char *http = strstr(uri, "HTTP");
-        strncpy(path + len, uri + 4, (int)(http - uri - 5));
+        strncpy(path, uri + 4, (int)(http - uri - 5));
     }
     
     const char *postfix = strrchr(path, '.');
@@ -93,7 +90,7 @@ int main(int argc, const char * argv[]) {
     
     PANIC(bind, server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr));
     
-    PANIC(listen, server_socket, 5);
+    PANIC(listen, server_socket, 128);
     
     printf("ready to serve.\n");
     
@@ -104,25 +101,28 @@ int main(int argc, const char * argv[]) {
         char buf[1024] = {0};
         read(client_socket, buf, 1024);
         buf[1023] = 0;
-        printf("%s", buf);
+        //printf("%s", buf);
         
-        char path[MAX_URL_LENGTH] = {0};
-        const char *content_type = map_uri_to_path(buf, path);
+        if (strlen(buf)) {
         
-        int fd = open(path, O_RDONLY);
-        if (fd > 0) {
-            struct stat st = filesize(fd);
+            char path[MAX_URL_LENGTH] = {0};
+            const char *content_type = map_uri_to_path(buf, path);
             
-            write(client_socket, status_header, strlen(status_header));
-            write(client_socket, content_type, strlen(content_type));
+            int fd = get_value(path, strlen(path));
+            if (fd > 0) {
+                struct stat st = filesize(fd);
+                
+                write(client_socket, status_header, strlen(status_header));
+                write(client_socket, content_type, strlen(content_type));
+                
+                sendfile(fd, client_socket, 0, (off_t *)&st.st_size, NULL, 0);
+            } else {
+                char *status = "HTTP/1.0 404 OK\n";
+                write(client_socket, status, strlen(status));
+            }
             
-            sendfile(fd, client_socket, 0, (off_t *)&st.st_size, NULL, 0);
-        } else {
-            char *status = "HTTP/1.0 404 OK\n";
-            write(client_socket, status, strlen(status));
+            close(client_socket);
         }
-        
-        close(client_socket);
     }
     
     close(server_socket);
