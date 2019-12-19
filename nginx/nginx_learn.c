@@ -16,22 +16,12 @@
 #include <sys/stat.h>
 #include <sys/fcntl.h>
 
-#define PORT 80
-#define MAX_URL_LENGTH 150
+#include "one.h"
 
-#define PANIC(func, ...) {                                 \
-    int ret = func(__VA_ARGS__);                           \
-    if (ret < 0) {                                         \
-        printf("system call %s error: %d.\n", #func, ret); \
-        exit(-1);                                          \
-    }                                                      \
-}
+const char *html_root = NULL;
 
-extern int hash_get_value(const char *path, u_long length);
-
-const char *html_root = 0;
-const char *status_header = "HTTP/1.0 200 OK\nServer: nginx_learn\n";
-const char *html_content_type[] = {
+static const char *status_header = "HTTP/1.0 200 OK\nServer: nginx_learn\n";
+static const char *html_content_type[] = {
     "Content-Type: text/html;charset=utf-8\n\n",
     "Content-Type: application/javascript;charset=utf-8\n\n",
     "Content-Type: text/css;charset=utf-8\n\n",
@@ -45,9 +35,7 @@ struct stat filesize(int fd) {
     return st;
 }
 
-const char * map_uri_to_path(char *uri, char *path) {
-    
-    
+static const char * map_uri_to_path(char *uri, char *path) {
     
     if (uri[5] == ' ') {
         strncpy(path, "/index.html", 11);
@@ -71,15 +59,7 @@ const char * map_uri_to_path(char *uri, char *path) {
     }
 }
 
-int main(int argc, const char * argv[]) {
-    
-    if (argc < 2) {
-        printf("need to specify index file.\n");
-        exit(-1);
-    } else {
-        html_root = argv[1];
-    }
-    
+static int create_socket() {
     int server_socket = socket(AF_INET, SOCK_STREAM, 0);
     
     struct sockaddr_in server_addr;
@@ -94,6 +74,21 @@ int main(int argc, const char * argv[]) {
     
     printf("ready to serve.\n");
     
+    return server_socket;
+}
+
+int main(int argc, const char * argv[]) {
+    
+    if (argc < 2) {
+        printf("need to specify index file.\n");
+        exit(-1);
+    } else {
+        html_root = argv[1];
+    }
+    
+    init_cache();
+    
+    int server_socket = create_socket();
     int client_socket = 0;
     
     while ((client_socket = accept(server_socket, NULL, NULL))) {
@@ -108,7 +103,7 @@ int main(int argc, const char * argv[]) {
             char path[MAX_URL_LENGTH] = {0};
             const char *content_type = map_uri_to_path(buf, path);
             
-            int fd = hash_get_value(path, strlen(path));
+            int fd = hash_get(path, strlen(path));
             if (fd > 0) {
                 struct stat st = filesize(fd);
                 

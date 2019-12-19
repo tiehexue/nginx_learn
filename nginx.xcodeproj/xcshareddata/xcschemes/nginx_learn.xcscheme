@@ -52,7 +52,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "$(PROJECT_DIR)/../../../Downloads/share/flower_photos/train"
+            argument = "$(PROJECT_DIR)/../../../Downloads/old"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
