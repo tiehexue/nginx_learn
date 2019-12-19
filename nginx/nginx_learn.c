@@ -41,7 +41,7 @@ static int create_socket() {
 int main(int argc, const char * argv[]) {
     
     if (argc < 2) {
-        printf("need to specify index file.\n");
+        printf("need to specify root dir.\n");
         exit(-1);
     } else {
         html_root = argv[1];
@@ -63,24 +63,19 @@ int main(int argc, const char * argv[]) {
         int events_count = kevent(kq, NULL, 0, evList, 32, NULL);
         for (int i = 0; i < events_count; i++) {
             if ((int)evList[i].ident == server_socket) {
-                struct sockaddr_storage addr;
-                socklen_t socklen = sizeof(addr);
                 
-                int fd = accept((int)evList[i].ident, (struct sockaddr *)&addr,
-                    &socklen);
-                
-                EV_SET(&evSet, fd, EVFILT_READ, EV_ADD, 0, 0, NULL);
-                kevent(kq, &evSet, 1, NULL, 0, NULL);
-                
-                int flags = fcntl(fd, F_GETFL, 0);
-                fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-                
-                if (fd == -1) {
-                    printf("accept connection failed.\n");
+                int fd = accept((int)evList[i].ident, NULL, 0);
+
+                if (fd > 0) {
+                    EV_SET(&evSet, fd, EVFILT_READ, EV_ADD, 0, 0, NULL);
+                    kevent(kq, &evSet, 1, NULL, 0, NULL);
+                    
+                    int flags = fcntl(fd, F_GETFL, 0);
+                    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+                    
+                    EV_SET(&evSet, fd, EVFILT_WRITE, EV_ADD | EV_ONESHOT, 0, 0, NULL);
+                    kevent(kq, &evSet, 1, NULL, 0, NULL);
                 }
-                
-                EV_SET(&evSet, fd, EVFILT_WRITE, EV_ADD | EV_ONESHOT, 0, 0, NULL);
-                kevent(kq, &evSet, 1, NULL, 0, NULL);
             } else if (evList[i].filter == EVFILT_READ) {
                 int client_socket = (int)evList[i].ident;
                 
@@ -106,11 +101,9 @@ int main(int argc, const char * argv[]) {
                             f_off->offset += len;
                             EV_SET(&evSet, client_socket, EVFILT_WRITE, EV_ADD | EV_ONESHOT, 0, 0, (void *)f_off);
                             kevent(kq, &evSet, 1, NULL, 0, NULL);
-                        } else {
-                            //printf("sendfile %ld to %d return %d with errno %d.\n", (long)len, client_socket, sent, errno);
                         }
                     } else {
-                        //printf("finished sending %ld bytes to %d.\n", (long)(f_off->offset + len), client_socket);
+                        printf("finished sending %ld bytes to %d.\n", (long)(f_off->offset + len), client_socket);
                         free(f_off);
                         close(client_socket);
                     }
