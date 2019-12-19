@@ -5,59 +5,20 @@
 //  Created by Yuan Wang on 2019/12/16.
 //  Copyright © 2019 Yuan Wang. All rights reserved.
 //
-
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <assert.h>
+#include <errno.h>
+
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <sys/stat.h>
+#include <sys/event.h>
 #include <sys/fcntl.h>
 
 #include "one.h"
 
 const char *html_root = NULL;
-
-static const char *status_header = "HTTP/1.0 200 OK\nServer: nginx_learn\n";
-static const char *html_content_type[] = {
-    "Content-Type: text/html;charset=utf-8\n\n",
-    "Content-Type: application/javascript;charset=utf-8\n\n",
-    "Content-Type: text/css;charset=utf-8\n\n",
-    "Content-Type: image/png;charset=utf-8\n\n",
-    "Content-Type: image/jpg;charset=utf-8\n\n"
-};
-
-struct stat filesize(int fd) {
-    struct stat st;
-    assert(fstat(fd, &st) != -1);
-    return st;
-}
-
-static const char * map_uri_to_path(char *uri, char *path) {
-    
-    if (uri[5] == ' ') {
-        strncpy(path, "/index.html", 11);
-    } else {
-        char *http = strstr(uri, "HTTP");
-        strncpy(path, uri + 4, (int)(http - uri - 5));
-    }
-    
-    const char *postfix = strrchr(path, '.');
-    
-    if (!strcmp(postfix, ".js")) {
-        return html_content_type[1];
-    } else if (!strcmp(postfix, ".css")) {
-        return html_content_type[2];
-    } else if (!strcmp(postfix, ".png")){
-        return html_content_type[3];
-    } else if (!strcmp(postfix, ".jpg")){
-        return html_content_type[4];
-    } else {
-        return html_content_type[0];
-    }
-}
 
 static int create_socket() {
     int server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -89,38 +50,74 @@ int main(int argc, const char * argv[]) {
     init_cache();
     
     int server_socket = create_socket();
-    int client_socket = 0;
     
-    while ((client_socket = accept(server_socket, NULL, NULL))) {
-        
-        char buf[1024] = {0};
-        read(client_socket, buf, 1024);
-        buf[1023] = 0;
-        //printf("%s", buf);
-        
-        if (strlen(buf)) {
-        
-            char path[MAX_URL_LENGTH] = {0};
-            const char *content_type = map_uri_to_path(buf, path);
-            
-            int fd = hash_get(path, strlen(path));
-            if (fd > 0) {
-                struct stat st = filesize(fd);
+    int kq = kqueue();
+
+    struct kevent evSet;
+    EV_SET(&evSet, server_socket, EVFILT_READ, EV_ADD, 0, 0, NULL);
+    if (kevent(kq, &evSet, 1, NULL, 0, NULL) == -1)
+        printf("register kevent failed.\n");
+    
+    struct kevent evList[32];
+    while (1) {
+        int events_count = kevent(kq, NULL, 0, evList, 32, NULL);
+        for (int i = 0; i < events_count; i++) {
+            if ((int)evList[i].ident == server_socket) {
+                struct sockaddr_storage addr;
+                socklen_t socklen = sizeof(addr);
                 
-                write(client_socket, status_header, strlen(status_header));
-                write(client_socket, content_type, strlen(content_type));
+                int fd = accept((int)evList[i].ident, (struct sockaddr *)&addr,
+                    &socklen);
                 
-                sendfile(fd, client_socket, 0, (off_t *)&st.st_size, NULL, 0);
-            } else {
-                char *status = "HTTP/1.0 404 OK\n";
-                write(client_socket, status, strlen(status));
+                EV_SET(&evSet, fd, EVFILT_READ, EV_ADD, 0, 0, NULL);
+                kevent(kq, &evSet, 1, NULL, 0, NULL);
+                
+                int flags = fcntl(fd, F_GETFL, 0);
+                fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+                
+                if (fd == -1) {
+                    printf("accept connection failed.\n");
+                }
+                
+                EV_SET(&evSet, fd, EVFILT_WRITE, EV_ADD | EV_ONESHOT, 0, 0, NULL);
+                kevent(kq, &evSet, 1, NULL, 0, NULL);
+            } else if (evList[i].filter == EVFILT_READ) {
+                int client_socket = (int)evList[i].ident;
+                
+                int fd = send_header(client_socket);
+                if (fd > 0) {
+                    fd_offset *f_off = (fd_offset *)malloc(sizeof(fd_offset));
+                    f_off->fd = fd;
+                    f_off->offset = 0;
+                    
+                    EV_SET(&evSet, client_socket, EVFILT_WRITE, EV_ADD | EV_ONESHOT, 0, 0, (void *)f_off);
+                    kevent(kq, &evSet, 1, NULL, 0, NULL);
+                }
+            } else if (evList[i].filter == EVFILT_WRITE) {
+                
+                int client_socket = (int)evList[i].ident;
+                fd_offset *f_off = (fd_offset *)evList[i].udata;
+
+                if (f_off && f_off->fd > 0) {
+                    off_t len = 0;
+                    int sent = sendfile(f_off->fd, client_socket, f_off->offset, &len, NULL, 0);
+                    if (sent != 0) {
+                        if (errno == EAGAIN) {
+                            f_off->offset += len;
+                            EV_SET(&evSet, client_socket, EVFILT_WRITE, EV_ADD | EV_ONESHOT, 0, 0, (void *)f_off);
+                            kevent(kq, &evSet, 1, NULL, 0, NULL);
+                        } else {
+                            //printf("sendfile %ld to %d return %d with errno %d.\n", (long)len, client_socket, sent, errno);
+                        }
+                    } else {
+                        //printf("finished sending %ld bytes to %d.\n", (long)(f_off->offset + len), client_socket);
+                        free(f_off);
+                        close(client_socket);
+                    }
+                }
             }
-            
-            close(client_socket);
         }
     }
-    
-    close(server_socket);
     
     return 0;
 }

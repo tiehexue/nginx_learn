@@ -21,9 +21,16 @@
     }                                                      \
 }
 
+typedef struct {
+    int fd;
+    off_t offset;
+} fd_offset;
+
 extern const char *html_root;
 
 void init_cache(void);
 int hash_get(const char *path, u_long length);
+
+int send_header(int client_socket);
 
 #endif /* one_h */
