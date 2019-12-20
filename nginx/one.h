@@ -9,16 +9,19 @@
 #ifndef one_h
 #define one_h
 
+#include <errno.h>
+#include <string.h>
+
 #define PORT 80
 #define MAX_URL_LENGTH 150
 #define INITIAL_SIZE 100
 
-#define PANIC(func, ...) {                                 \
-    int ret = func(__VA_ARGS__);                           \
-    if (ret < 0) {                                         \
-        printf("system call %s error: %d.\n", #func, ret); \
-        exit(-1);                                          \
-    }                                                      \
+#define PANIC(func, ...) {                  \
+    int ret = func(__VA_ARGS__);            \
+    if (ret < 0) {                          \
+        printf("system call %s return %d with errno %d and error string '%s'.\n", #func, ret, errno, strerror(errno)); \
+        exit(-1);                           \
+    }                                       \
 }
 
 typedef struct {
