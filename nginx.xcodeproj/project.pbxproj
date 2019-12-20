@@ -42,6 +42,7 @@
 		1523589823A391F300C82F9B /* ngx_quick_link_test.c in Sources */ = {isa = PBXBuildFile; fileRef = 1523589423A391F300C82F9B /* ngx_quick_link_test.c */; };
 		1523589923A391F300C82F9B /* ngx_quick_link.c in Sources */ = {isa = PBXBuildFile; fileRef = 1523589523A391F300C82F9B /* ngx_quick_link.c */; };
 		1523589B23A392D100C82F9B /* libmysqlclient.21.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 1523589A23A392D100C82F9B /* libmysqlclient.21.dylib */; };
+		1525582E23AC926500081DA6 /* event_darwin.c in Sources */ = {isa = PBXBuildFile; fileRef = 1525582D23AC926500081DA6 /* event_darwin.c */; };
 		1530608723A3267400CC1624 /* ngx_event_accept.c in Sources */ = {isa = PBXBuildFile; fileRef = 15305F6E23A3267400CC1624 /* ngx_event_accept.c */; };
 		1530608823A3267400CC1624 /* ngx_event_udp.c in Sources */ = {isa = PBXBuildFile; fileRef = 15305F7023A3267400CC1624 /* ngx_event_udp.c */; };
 		1530608A23A3267400CC1624 /* ngx_event_connect.c in Sources */ = {isa = PBXBuildFile; fileRef = 15305F7223A3267400CC1624 /* ngx_event_connect.c */; };
@@ -266,6 +267,9 @@
 		1523589523A391F300C82F9B /* ngx_quick_link.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ngx_quick_link.c; sourceTree = "<group>"; };
 		1523589A23A392D100C82F9B /* libmysqlclient.21.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.21.dylib; path = ../../../../../usr/local/Cellar/mysql/8.0.18_1/lib/libmysqlclient.21.dylib; sourceTree = "<group>"; };
 		1523589C23A397A100C82F9B /* logs */ = {isa = PBXFileReference; lastKnownFileType = folder; name = logs; path = "nginx-1.17.6/logs"; sourceTree = "<group>"; };
+		1525582C23AC5EDF00081DA6 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		1525582D23AC926500081DA6 /* event_darwin.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = event_darwin.c; sourceTree = "<group>"; };
+		1525582F23AC94CC00081DA6 /* event_linux.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = event_linux.c; sourceTree = "<group>"; };
 		15305F0223A325BE00CC1624 /* nginx */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = nginx; sourceTree = BUILT_PRODUCTS_DIR; };
 		15305F6E23A3267400CC1624 /* ngx_event_accept.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ngx_event_accept.c; sourceTree = "<group>"; };
 		15305F6F23A3267400CC1624 /* ngx_event_posted.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ngx_event_posted.h; sourceTree = "<group>"; };
@@ -608,6 +612,9 @@
 				15DDF96123AB01350019BC44 /* crc_table.c */,
 				15DDF96323AB09400019BC44 /* one.h */,
 				15DDF96723AB120E0019BC44 /* web.c */,
+				1525582C23AC5EDF00081DA6 /* Makefile */,
+				1525582D23AC926500081DA6 /* event_darwin.c */,
+				1525582F23AC94CC00081DA6 /* event_linux.c */,
 			);
 			path = nginx;
 			sourceTree = "<group>";
@@ -1095,6 +1102,7 @@
 				15DDF96823AB120E0019BC44 /* web.c in Sources */,
 				15DDF96423AB0CE50019BC44 /* nginx_learn.c in Sources */,
 				15DDF96523AB0CE50019BC44 /* hash.c in Sources */,
+				1525582E23AC926500081DA6 /* event_darwin.c in Sources */,
 				15DDF96623AB0CE50019BC44 /* crc_table.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
