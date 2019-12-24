@@ -34,7 +34,7 @@ void * event_loop(void *s) {
             if ((int)evList[i].ident == server_socket) {
                 
                 int fd = accept((int)evList[i].ident, NULL, 0);
-
+                
                 if (fd > 0) {
                     EV_SET(&evSet, fd, EVFILT_READ, EV_ADD, 0, 0, NULL);
                     kevent(kq, &evSet, 1, NULL, 0, NULL);

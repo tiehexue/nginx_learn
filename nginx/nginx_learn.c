@@ -18,6 +18,7 @@
 #define LISTEN_COUNT 128
 #else
 #define LISTEN_COUNT 2048
+#include <signal.h>
 #endif
 
 #define THREAD_COUNT 2
@@ -25,7 +26,11 @@
 const char *html_root = NULL;
 
 static int create_socket() {
+    
     int server_socket = socket(AF_INET, SOCK_STREAM, 0);
+    
+    int optval = 1;
+    setsockopt(server_socket, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval));
     
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(server_addr));
@@ -34,6 +39,7 @@ static int create_socket() {
     server_addr.sin_port = htons(PORT);
     
     PANIC(bind, server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr));
+    PANIC(listen, server_socket, LISTEN_COUNT);
     
     printf("ready to serve.\n");
     
@@ -49,19 +55,19 @@ int main(int argc, const char * argv[]) {
         html_root = argv[1];
     }
     
-    init_cache();
-    
-    int server_socket = create_socket();
+    signal(SIGPIPE, SIG_IGN);
     
     int pid = fork();
     
     if (pid == 0) {
-        PANIC(listen, server_socket, LISTEN_COUNT);
+        init_cache();
+        int server_socket = create_socket();
         printf("child process: %d, parent: %d.\n", getpid(), getppid());
         event_loop(&server_socket);
     } else {
-        PANIC(listen, server_socket, LISTEN_COUNT);
-        printf("master process: %d, parent: %d.\n", getpid(), getppid());
+        init_cache();
+        int server_socket = create_socket();
+        printf("main process: %d, parent: %d.\n", getpid(), getppid());
         event_loop(&server_socket);
     }
     

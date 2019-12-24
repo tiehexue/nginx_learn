@@ -50,6 +50,7 @@ void * event_loop(void *s) {
             struct epoll_event current = events[i];
             if (current.data.fd == server_socket) {
                 int client_socket = accept(server_socket, NULL, 0);
+                
                 if (client_socket > 0) {
                     int flags = fcntl(client_socket, F_GETFL, 0);
                     fcntl(client_socket, F_SETFL, flags | O_NONBLOCK);
