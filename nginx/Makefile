@@ -8,5 +8,6 @@ clean:
 build:
 	gcc $(CFLAGS) nginx_learn.c hash.c crc_table.c \
 	web.c event_linux.c \
-	-o n2 -I/usr/include/kqueue -lkqueue
+	-o n2 -I/usr/include/kqueue \
+	-lkqueue -lpthread
 

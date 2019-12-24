@@ -28,9 +28,8 @@ typedef struct {
     off_t offset;
 } epoll_event_data;
 
-void event_loop(int server_socket) {
-    
-    PANIC(listen, server_socket, 2048);
+void * event_loop(void *s) {
+    int server_socket = *((int *)s);
     
     struct epoll_event ev, events[100];
     
@@ -113,4 +112,6 @@ void event_loop(int server_socket) {
             }
         }
     }
+    
+    return NULL;
 }

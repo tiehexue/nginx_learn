@@ -17,9 +17,8 @@
 
 #include "one.h"
 
-void event_loop(int server_socket) {
-    
-    PANIC(listen, server_socket, 128);
+void * event_loop(void *s) {
+    int server_socket = *((int *)s);
     
     int kq = kqueue();
 
@@ -82,4 +81,6 @@ void event_loop(int server_socket) {
             }
         }
     }
+    
+    return NULL;
 }

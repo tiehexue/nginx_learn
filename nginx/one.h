@@ -35,6 +35,6 @@ void init_cache(void);
 int hash_get(const char *path, u_long length);
 
 int send_header(int client_socket);
-void event_loop(int server_socket);
+void * event_loop(void *server_socket);
 
 #endif /* one_h */

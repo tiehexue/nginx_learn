@@ -7,11 +7,20 @@
 //
 #include <stdio.h>
 #include <stdlib.h>
-#include <netinet/in.h>
 #include <string.h>
+#include <unistd.h>
+#include <netinet/in.h>
 #include <sys/socket.h>
 
 #include "one.h"
+
+#ifdef NGX_DARWIN
+#define LISTEN_COUNT 128
+#else
+#define LISTEN_COUNT 2048
+#endif
+
+#define THREAD_COUNT 2
 
 const char *html_root = NULL;
 
@@ -44,7 +53,17 @@ int main(int argc, const char * argv[]) {
     
     int server_socket = create_socket();
     
-    event_loop(server_socket);
+    int pid = fork();
+    
+    if (pid == 0) {
+        PANIC(listen, server_socket, LISTEN_COUNT);
+        printf("child process: %d, parent: %d.\n", getpid(), getppid());
+        event_loop(&server_socket);
+    } else {
+        PANIC(listen, server_socket, LISTEN_COUNT);
+        printf("master process: %d, parent: %d.\n", getpid(), getppid());
+        event_loop(&server_socket);
+    }
     
     return 0;
 }
