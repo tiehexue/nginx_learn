@@ -76,7 +76,7 @@ static char* ngx_http_mysql_query_set(ngx_conf_t *cf, ngx_command_t *cmd, void *
     values[1].len--;
     values[1].data++;
     
-    v = ngx_http_add_variable(cf, &values[1], NGX_HTTP_VAR_CHANGEABLE|NGX_HTTP_VAR_WEAK);
+    v = ngx_http_add_variable(cf, &values[1], NGX_HTTP_VAR_CHANGEABLE | NGX_HTTP_VAR_WEAK);
     if (v == NULL) {
         return NGX_CONF_ERROR;
     }
