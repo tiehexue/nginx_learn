@@ -1,9 +1,0 @@
-ngx_module_type=HTTP
-ngx_addon_name=ngx_http_mysql_module
-ngx_module_name=ngx_http_mysql_module
-ngx_module_srcs="$ngx_addon_dir/ngx_http_mysql_module.c $ngx_addon_dir/ngx_http_mysql_module_impl.c $ngx_addon_dir/ngx_quick_link.c"
-
-CORE_LIBS="$CORE_LIBS -L/usr/local/opt/openssl/lib `mysql_config --libs`"
-CFLAGS="$CFLAGS -I/usr/local/opt/pcre/include/ `mysql_config --include`"
-
-. auto/module
